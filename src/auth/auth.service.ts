@@ -100,6 +100,10 @@ export class AuthService {
       throw new NotFoundException('Session not found');
     }
 
+    if (session.is_logout) {
+      throw new UnauthorizedException('Session already logout');
+    }
+
     // compare hash
     const checkHash = session.hash === payload.hash;
 
@@ -125,6 +129,23 @@ export class AuthService {
       id: user.id,
       username: user.username,
       session,
+    });
+  }
+
+  async logout(token: string) {
+    const originalToken = token.split(' ')[1];
+    const user = this.jwtService.decode(originalToken);
+    const session = await this.sessionReposity.findOneBy({
+      id: user.session_id,
+    });
+
+    if (session.is_logout) {
+      throw new UnauthorizedException('Session already logout');
+    }
+
+    await this.sessionReposity.update(session.id, {
+      ...session,
+      is_logout: !session.is_logout,
     });
   }
 }
