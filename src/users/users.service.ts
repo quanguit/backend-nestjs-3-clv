@@ -48,17 +48,20 @@ export class UsersService {
   }
 
   async update(id: number, body: UpdateUserDto) {
+    let hashPassword = '';
     const user = await this.userRepository.findOneBy({ id });
 
     if (!user) {
       throw new NotFoundException('User not found');
     }
 
-    const hashPassword = await bcrypt.hash(body.password, 10);
+    if (body.password) {
+      hashPassword = await bcrypt.hash(body.password, 10);
+    }
 
     Object.assign(user, {
       ...body,
-      password: hashPassword,
+      password: body.password ? hashPassword : user.password,
     });
 
     return this.userRepository.save(user);

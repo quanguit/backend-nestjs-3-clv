@@ -25,13 +25,16 @@ export class AuthService {
   private async generateToken(payload: {
     id: number;
     username: string;
+    role: string;
     session: SessionEntity;
   }) {
     const access_token_payload = {
       id: payload.id,
       username: payload.username,
       session_id: payload.session.id,
+      role: payload.role,
     };
+
     const refresh_token_payload = {
       session_id: payload.session.id,
       hash: payload.session.hash,
@@ -84,6 +87,7 @@ export class AuthService {
     return this.generateToken({
       id: user.id,
       username: user.username,
+      role: user.role,
       session,
     });
   }
@@ -128,6 +132,7 @@ export class AuthService {
     return this.generateToken({
       id: user.id,
       username: user.username,
+      role: user.role,
       session,
     });
   }
@@ -144,7 +149,6 @@ export class AuthService {
     }
 
     await this.sessionReposity.update(session.id, {
-      ...session,
       is_logout: !session.is_logout,
     });
   }
