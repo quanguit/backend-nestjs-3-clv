@@ -1,3 +1,4 @@
+import { Exclude } from 'class-transformer';
 import { Role } from 'src/auth/enums/role.enum';
 import {
   Column,
@@ -17,6 +18,7 @@ export class UserEntity {
   username: string;
 
   @Column()
+  @Exclude()
   password: string;
 
   @Column()
