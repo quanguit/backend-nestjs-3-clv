@@ -24,7 +24,7 @@ export class UsersController {
 
   @Get(':id')
   async findOne(@Param('id') id: string) {
-    return this.userService.findOne(Number(id));
+    return this.userService.findOne(id);
   }
 
   @Post()
@@ -36,12 +36,12 @@ export class UsersController {
   @Put(':id')
   @Roles(Role.Admin)
   update(@Param('id') id: string, @Body() body: UpdateUserDto) {
-    return this.userService.update(Number(id), body);
+    return this.userService.update(id, body);
   }
 
   @Delete(':id')
   @Roles(Role.Admin)
   delete(@Param('id') id: string) {
-    return this.userService.delete(Number(id));
+    return this.userService.delete(id);
   }
 }

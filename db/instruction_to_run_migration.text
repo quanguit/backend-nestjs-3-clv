@@ -1,0 +1,22 @@
+=== Có thay đổi gì nhỏ thì nên create rồi viết câu SQL để dễ quản lí, chứ dùng generate không kiểm soát được, nó ra nhiều thứ phức
+tạp hơn
+=== Có thể dùng generate để tham khảo câu query
+=== Thay đổi gì thì thay đổi trong entity rồi chạy command
+
+
+// Step change table name
+ - Run command: "yarn migration:create ./db/migrations/CHANGE_TABLE_NAME"
+ - Adjust SQL query to change column
+ - Run command: "yarn migration:run"
+
+
+// Step add more Created_date column in Session table and remove Updated_date column in User table
+ - Run command: "yarn migration:create ./db/migrations/ADD_CREATED_DATE_AND_REMOVE_UPDATED_DATE"
+ - Add Created_date in Session Entity and remove Updated_date in User Entity
+ - Run command: "yarn migration:run"
+
+
+// Step add root user like master account
+ - Run command: "yarn migration:create ./db/migrations/ADD_ROOT_USER"
+ - Adjust SQL query
+ - Run command: "yarn migration:run"

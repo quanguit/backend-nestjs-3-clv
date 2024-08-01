@@ -21,7 +21,7 @@ export class UsersService {
     return this.userRepository.find();
   }
 
-  async findOne(id: number) {
+  async findOne(id: string) {
     const user = await this.userRepository.findOneBy({ id });
 
     if (!user) {
@@ -47,7 +47,7 @@ export class UsersService {
     });
   }
 
-  async update(id: number, body: UpdateUserDto) {
+  async update(id: string, body: UpdateUserDto) {
     let hashPassword = '';
     const user = await this.userRepository.findOneBy({ id });
 
@@ -67,7 +67,7 @@ export class UsersService {
     return this.userRepository.save(user);
   }
 
-  async delete(id: number) {
+  async delete(id: string) {
     const user = await this.userRepository.findOneBy({ id });
 
     if (!user) {
