@@ -3,6 +3,7 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
@@ -20,6 +21,7 @@ export class AuthService {
     @InjectRepository(SessionEntity)
     private sessionReposity: Repository<SessionEntity>,
     private jwtService: JwtService,
+    private configService: ConfigService,
   ) {}
 
   private async generateToken(payload: {
@@ -43,7 +45,7 @@ export class AuthService {
 
     const access_token = this.jwtService.sign(access_token_payload);
     const refresh_token = this.jwtService.sign(refresh_token_payload, {
-      expiresIn: '7d',
+      expiresIn: this.configService.get<string>('EXP_IN_REFRESH_TOKEN'),
     });
 
     const currentTime = Math.floor(Date.now() / 1000);

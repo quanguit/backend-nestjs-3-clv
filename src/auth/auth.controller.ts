@@ -19,7 +19,7 @@ export class AuthController {
     const { access_token, refresh_token, expiredIn } =
       await this.authService.login(body);
 
-    // Set the refresh token in a cookie
+    // Set the access token in a cookie
     res.cookie('access_token', access_token, {
       httpOnly: true,
       secure: true,
