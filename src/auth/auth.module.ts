@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtModule } from '@nestjs/jwt';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -12,9 +13,15 @@ import { RolesGuard } from './roles.guard';
 @Module({
   imports: [
     TypeOrmModule.forFeature([UserEntity, SessionEntity]),
-    JwtModule.register({
-      secret: 'secret',
-      signOptions: { expiresIn: '1d' },
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: async (configService: ConfigService) => ({
+        secret: configService.get<string>('SECRET'),
+        signOptions: {
+          expiresIn: configService.get<string>('EXP_IN_ACCESS_TOKEN'),
+        },
+      }),
     }),
   ],
   controllers: [AuthController],
