@@ -23,7 +23,7 @@ export class AuthService {
   ) {}
 
   private async generateToken(payload: {
-    id: number;
+    id: string;
     username: string;
     role: string;
     session: SessionEntity;

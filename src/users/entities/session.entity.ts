@@ -1,5 +1,6 @@
 import {
   Column,
+  CreateDateColumn,
   Entity,
   JoinColumn,
   ManyToOne,
@@ -7,16 +8,19 @@ import {
 } from 'typeorm';
 import { UserEntity } from './user.entity';
 
-@Entity()
+@Entity('Session')
 export class SessionEntity {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
   @Column()
   hash: string;
 
   @Column({ type: 'boolean', default: false })
   is_logout: boolean;
+
+  @CreateDateColumn()
+  created_date: Date;
 
   @ManyToOne(() => UserEntity, (user) => user.sessions)
   @JoinColumn({ name: 'user_id' })
