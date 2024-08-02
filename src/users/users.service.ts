@@ -1,6 +1,7 @@
 import {
   ConflictException,
   Injectable,
+  InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -22,58 +23,74 @@ export class UsersService {
   }
 
   async findOne(id: string) {
-    const user = await this.userRepository.findOneBy({ id });
+    try {
+      const user = await this.userRepository.findOneBy({ id });
 
-    if (!user) {
-      throw new NotFoundException('User not found');
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
+
+      return user;
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
     }
-
-    return user;
   }
 
   async create(body: CreateUserDto) {
-    const user = await this.userRepository.findOneBy({
-      username: body.username,
-    });
+    try {
+      const user = await this.userRepository.findOneBy({
+        username: body.username,
+      });
 
-    if (user) {
-      throw new ConflictException('User already exists');
+      if (user) {
+        throw new ConflictException('User already exists');
+      }
+
+      const hashPassword = await bcrypt.hash(body.password, 10);
+      return this.userRepository.save({
+        ...body,
+        password: hashPassword,
+      });
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
     }
-
-    const hashPassword = await bcrypt.hash(body.password, 10);
-    return this.userRepository.save({
-      ...body,
-      password: hashPassword,
-    });
   }
 
   async update(id: string, body: UpdateUserDto) {
-    let hashPassword = '';
-    const user = await this.userRepository.findOneBy({ id });
+    try {
+      let hashPassword = '';
+      const user = await this.userRepository.findOneBy({ id });
 
-    if (!user) {
-      throw new NotFoundException('User not found');
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
+
+      if (body.password) {
+        hashPassword = await bcrypt.hash(body.password, 10);
+      }
+
+      Object.assign(user, {
+        ...body,
+        password: body.password ? hashPassword : user.password,
+      });
+
+      return this.userRepository.save(user);
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
     }
-
-    if (body.password) {
-      hashPassword = await bcrypt.hash(body.password, 10);
-    }
-
-    Object.assign(user, {
-      ...body,
-      password: body.password ? hashPassword : user.password,
-    });
-
-    return this.userRepository.save(user);
   }
 
   async delete(id: string) {
-    const user = await this.userRepository.findOneBy({ id });
+    try {
+      const user = await this.userRepository.findOneBy({ id });
 
-    if (!user) {
-      throw new NotFoundException('User not found');
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
+
+      return this.userRepository.remove(user);
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
     }
-
-    return this.userRepository.remove(user);
   }
 }
