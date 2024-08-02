@@ -1,7 +1,6 @@
 import {
   ConflictException,
   Injectable,
-  InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -32,7 +31,10 @@ export class UsersService {
 
       return user;
     } catch (error) {
-      throw new InternalServerErrorException(error.message);
+      if (error?.code === '22P02') {
+        throw new NotFoundException('User not found');
+      }
+      throw error;
     }
   }
 
@@ -52,7 +54,7 @@ export class UsersService {
         password: hashPassword,
       });
     } catch (error) {
-      throw new InternalServerErrorException(error.message);
+      throw error;
     }
   }
 
@@ -76,7 +78,7 @@ export class UsersService {
 
       return this.userRepository.save(user);
     } catch (error) {
-      throw new InternalServerErrorException(error.message);
+      throw error;
     }
   }
 
@@ -90,7 +92,7 @@ export class UsersService {
 
       return this.userRepository.remove(user);
     } catch (error) {
-      throw new InternalServerErrorException(error.message);
+      throw error;
     }
   }
 }
