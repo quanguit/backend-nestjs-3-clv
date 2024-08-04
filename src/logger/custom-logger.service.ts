@@ -10,6 +10,7 @@ export class CustomLoggerService extends Logger {
   }
 
   error(message: any, ...optionalParams: any[]): void {
+    console.log('error in exception filter ================');
     this.logger.error(message, ...optionalParams);
   }
 

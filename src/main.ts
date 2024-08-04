@@ -7,7 +7,10 @@ import { HttpExceptionFilter } from './exception/http-exception.filter';
 import { CustomLoggerService } from './logger/custom-logger.service';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, { bufferLogs: true });
+  const app = await NestFactory.create(AppModule, {
+    bufferLogs: true,
+    logger: console,
+  });
   const globalPrefix = 'api/v1';
 
   const config = new DocumentBuilder()

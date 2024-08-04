@@ -18,8 +18,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
     const status = exception.getStatus();
 
     if (this.isErrorStatusCode(status)) {
-      console.log('error hererehrerhereh');
-      //   this.customLoggerService.error(exception);
+      this.customLoggerService.error(exception);
     }
 
     response.status(status).json({
