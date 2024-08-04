@@ -9,6 +9,7 @@ import { AuthController } from './auth.controller';
 import { AuthGuard } from './auth.guard';
 import { AuthService } from './auth.service';
 import { RolesGuard } from './roles.guard';
+import { CustomLoggerService } from 'src/logger/custom-logger.service';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { RolesGuard } from './roles.guard';
   controllers: [AuthController],
   providers: [
     AuthService,
+    CustomLoggerService,
     // global because using APP_GUARD, it will run AuthGuard before RoleGuard
     {
       provide: APP_GUARD,

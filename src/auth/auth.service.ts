@@ -1,4 +1,5 @@
 import {
+  ForbiddenException,
   Injectable,
   NotFoundException,
   UnauthorizedException,
@@ -62,96 +63,108 @@ export class AuthService {
   }
 
   async login(loginDto: LoginDto) {
-    const user = await this.userRepository.findOne({
-      where: { username: loginDto.username },
-    });
+    try {
+      const user = await this.userRepository.findOne({
+        where: { username: loginDto.username },
+      });
 
-    if (!user) {
-      throw new NotFoundException('User not found');
+      if (!user) {
+        throw new ForbiddenException('Username or password is wrong');
+      }
+
+      const checkPassword = await bcrypt.compare(
+        loginDto.password,
+        user.password,
+      );
+
+      if (!checkPassword) {
+        throw new ForbiddenException('Username or password is wrong');
+      }
+
+      const hash = bcrypt.hashSync(`${user.id}-${Date.now()}`, 10);
+      const session = await this.sessionReposity.create({
+        user,
+        hash,
+      });
+      await this.sessionReposity.save(session);
+
+      return this.generateToken({
+        id: user.id,
+        username: user.username,
+        role: user.role,
+        session,
+      });
+    } catch (error) {
+      throw error;
     }
-
-    const checkPassword = await bcrypt.compare(
-      loginDto.password,
-      user.password,
-    );
-
-    if (!checkPassword) {
-      throw new UnauthorizedException('Password is wrong');
-    }
-
-    const hash = bcrypt.hashSync(`${user.id}-${Date.now()}`, 10);
-    const session = await this.sessionReposity.create({
-      user,
-      hash,
-    });
-    await this.sessionReposity.save(session);
-
-    return this.generateToken({
-      id: user.id,
-      username: user.username,
-      role: user.role,
-      session,
-    });
   }
 
   async refreshToken(body: RefreshTokenDto) {
-    const payload = this.jwtService.decode(body.refresh_token);
+    try {
+      const payload = this.jwtService.decode(body.refresh_token);
 
-    // find session by sessionID
-    const session = await this.sessionReposity.findOneBy({
-      id: payload.session_id,
-    });
+      // find session by sessionID
+      const session = await this.sessionReposity.findOneBy({
+        id: payload.session_id,
+      });
 
-    if (!session) {
-      throw new NotFoundException('Session not found');
+      if (!session) {
+        throw new NotFoundException('Session not found');
+      }
+
+      if (session.is_logout) {
+        throw new UnauthorizedException('Session already logout');
+      }
+
+      // compare hash
+      const checkHash = session.hash === payload.hash;
+
+      if (!checkHash) {
+        throw new UnauthorizedException('Invalid refresh token');
+      }
+
+      const user = await this.userRepository.findOneBy({
+        id: payload.user_id,
+      });
+
+      const hash = bcrypt.hashSync(`${user.id}-${Date.now()}`, 10);
+
+      Object.assign(session, {
+        user,
+        hash,
+      });
+
+      await this.sessionReposity.save(session);
+
+      // generate new access token
+      return this.generateToken({
+        id: user.id,
+        username: user.username,
+        role: user.role,
+        session,
+      });
+    } catch (error) {
+      throw error;
     }
-
-    if (session.is_logout) {
-      throw new UnauthorizedException('Session already logout');
-    }
-
-    // compare hash
-    const checkHash = session.hash === payload.hash;
-
-    if (!checkHash) {
-      throw new UnauthorizedException('Invalid refresh token');
-    }
-
-    const user = await this.userRepository.findOneBy({
-      id: payload.user_id,
-    });
-
-    const hash = bcrypt.hashSync(`${user.id}-${Date.now()}`, 10);
-
-    Object.assign(session, {
-      user,
-      hash,
-    });
-
-    await this.sessionReposity.save(session);
-
-    // generate new access token
-    return this.generateToken({
-      id: user.id,
-      username: user.username,
-      role: user.role,
-      session,
-    });
   }
 
   async logout(token: string) {
-    const originalToken = token.split(' ')[1];
-    const user = this.jwtService.decode(originalToken);
-    const session = await this.sessionReposity.findOneBy({
-      id: user.session_id,
-    });
+    try {
+      const originalToken = token.split(' ')[1];
+      const user = this.jwtService.decode(originalToken);
+      const session = await this.sessionReposity.findOneBy({
+        id: user.session_id,
+      });
 
-    if (session.is_logout) {
-      throw new UnauthorizedException('Session already logout');
+      if (session.is_logout) {
+        throw new UnauthorizedException('Session already logout');
+      }
+
+      await this.sessionReposity.update(session.id, {
+        is_logout: !session.is_logout,
+      });
+    } catch (error) {
+      throw error;
     }
-
-    await this.sessionReposity.update(session.id, {
-      is_logout: !session.is_logout,
-    });
   }
 }
