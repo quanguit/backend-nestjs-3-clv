@@ -69,7 +69,7 @@ export class AuthService {
       });
 
       if (!user) {
-        throw new ForbiddenException('Username or password is wrong');
+        throw new ForbiddenException('Incorrect username or password');
       }
 
       const checkPassword = await bcrypt.compare(
@@ -78,7 +78,7 @@ export class AuthService {
       );
 
       if (!checkPassword) {
-        throw new ForbiddenException('Username or password is wrong');
+        throw new ForbiddenException('Incorrect username or password');
       }
 
       const hash = bcrypt.hashSync(`${user.id}-${Date.now()}`, 10);

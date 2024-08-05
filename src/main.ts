@@ -1,4 +1,5 @@
 import { ValidationPipe } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import * as cookieParser from 'cookie-parser';
@@ -11,6 +12,8 @@ async function bootstrap() {
     bufferLogs: true,
     logger: console,
   });
+  const configService = app.get(ConfigService);
+
   const globalPrefix = 'api/v1';
 
   const config = new DocumentBuilder()
@@ -42,6 +45,6 @@ async function bootstrap() {
 
   app.useLogger(customLoggerService);
   app.useGlobalFilters(new HttpExceptionFilter(customLoggerService));
-  await app.listen(3000);
+  await app.listen(configService.get('PORT', 3000));
 }
 bootstrap();
