@@ -5,7 +5,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { JwtService } from '@nestjs/jwt';
+import { JwtService, TokenExpiredError } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
 import { SessionEntity } from 'src/users/entities/session.entity';
@@ -101,7 +101,7 @@ export class AuthService {
 
   async refreshToken(body: RefreshTokenDto) {
     try {
-      const payload = this.jwtService.decode(body.refresh_token);
+      const payload = await this.jwtService.verifyAsync(body.refresh_token);
 
       // find session by sessionID
       const session = await this.sessionReposity.findOneBy({
@@ -144,7 +144,11 @@ export class AuthService {
         session,
       });
     } catch (error) {
-      throw error;
+      if (error instanceof TokenExpiredError) {
+        throw new UnauthorizedException('Token is expired');
+      } else {
+        throw error;
+      }
     }
   }
 
